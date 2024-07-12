@@ -9,11 +9,21 @@ export default $config({
     };
   },
   async run() {
+    const table = new sst.aws.Dynamo("UsersTable", {
+      fields: {
+        userId: "string",
+        email: "string",
+      },
+      primaryIndex: { hashKey: "userId" },
+      globalIndexes: {
+        EmailIndex: { hashKey: "email" },
+      },
+    });
+
     const api = new sst.aws.ApiGatewayV2("UsersAPI");
     api.route("ANY /{proxy+}", {
       handler: "src/routes/index.handler",
+      link: [table],
     });
-
-    const bus = new sst.aws.Bus("Bus");
   },
 });

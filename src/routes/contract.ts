@@ -17,17 +17,14 @@ export const contract = c.router(
       path: `/:id`,
       responses: {
         200: z.object({}),
-        404: c.otherResponse({
-          contentType: "text/plain",
-          body: z.literal("User not found"),
-        }),
+        404: z.object({ message: z.literal("User not found") }),
       },
       summary: "Read a user by id",
     },
     updateUser: {
       method: "PATCH",
       path: `/:id`,
-      body: z.object({}),
+      body: z.object({ dob: z.string() }),
       responses: { 200: z.object({}) },
       summary: "Update a user",
     },
@@ -35,7 +32,7 @@ export const contract = c.router(
       method: "DELETE",
       path: `/:id`,
       body: z.object({}),
-      responses: { 200: z.object({}) },
+      responses: { 200: z.null() },
       summary: "Delete a user",
     },
   },

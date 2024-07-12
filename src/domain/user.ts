@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const User = z.object({
-  id: z.string(),
+  userId: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
   deletedAt: z.string().nullable(),

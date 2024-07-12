@@ -11,6 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.614.0",
+    "@aws-sdk/lib-dynamodb": "^3.614.0",
     "@ts-rest/core": "^3.45.2",
     "@ts-rest/serverless": "^3.45.2",
     "@types/node": "^20.14.10",
