@@ -13,5 +13,7 @@ export default $config({
     api.route("ANY /{proxy+}", {
       handler: "src/routes/index.handler",
     });
+
+    const bus = new sst.aws.Bus("Bus");
   },
 });
