@@ -9,12 +9,12 @@ export default $config({
     };
   },
   async run() {
-    const table = new sst.aws.Dynamo("UsersTable", {
+    const table = new sst.aws.Dynamo("Users", {
       fields: {
-        userId: "string",
+        id: "string",
         email: "string",
       },
-      primaryIndex: { hashKey: "userId" },
+      primaryIndex: { hashKey: "id" },
       globalIndexes: {
         EmailIndex: { hashKey: "email" },
       },

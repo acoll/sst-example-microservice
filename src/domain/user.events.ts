@@ -1,7 +1,7 @@
 type UserCreatedEvent = {
   type: "user.created";
   data: {
-    userId: string;
+    id: string;
     createdAt: string;
     name: string;
     email: string;
@@ -10,10 +10,8 @@ type UserCreatedEvent = {
 
 type UserDeletedEvent = {
   type: "user.deleted";
-  data: {
-    userId: string;
-    deletedAt: string;
-  };
+  data: { id: string; deletedAt: string };
 };
 
 export type UserEvent = UserCreatedEvent | UserDeletedEvent;
+export type UserEventEmitter = (event: UserEvent) => Promise<void>;

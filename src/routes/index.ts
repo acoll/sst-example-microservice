@@ -1,134 +1,86 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  GetCommand,
-  PutCommand,
-  UpdateCommand,
-} from "@aws-sdk/lib-dynamodb";
-
 import { createLambdaHandler } from "@ts-rest/serverless/aws";
-import { randomUUID } from "crypto";
 import { Resource } from "sst";
-import { User } from "~/domain/user";
+import { createDdbUserRepository } from "~/database/ddb-user-repository";
+import { createCreateUserController } from "~/domain/create-user/create-user.controller";
+import { createDeleteUserController } from "~/domain/delete-user/delete-user.controller";
+import { createUpdateUserController } from "~/domain/update-user/update-user.controller";
+import { UserEventEmitter } from "~/domain/user.events";
 import { contract } from "./contract";
 
-const client = new DynamoDBClient();
-const ddbDocClient = DynamoDBDocumentClient.from(client);
+// Create the controller with implementations of repo and other dependencies.
+const repo = createDdbUserRepository(Resource.Users.name);
+const emitEvent: UserEventEmitter = async (event) => console.log("Emit", event);
+
+const createUser = createCreateUserController(repo, emitEvent);
+const updateUser = createUpdateUserController(repo);
+const deleteUser = createDeleteUserController(repo, emitEvent);
 
 /**
  * The route handler's responsibilities are:
  * 1. Validate the request body and params and translate them to the domain model
+ *    This is done automatically by ts-rest contract schema
  * 2. Call the controller
  * 3. Translate the controller result to http responses
  *
  * The route handler should have no opinion of domain logic / business rules
  */
-
 export const handler = createLambdaHandler(
   contract,
   {
     createUser: async ({ body }) => {
-      console.log("Create User", body);
+      const result = await createUser(body);
 
-      const user: User = {
-        ...body,
-        userId: randomUUID(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        deletedAt: null,
-        name: "John Doe",
-        email: `john.doe+${randomUUID()}@example.com`,
-        dob: "1990-01-01",
-        favoriteColor: "blue",
-      };
-
-      // Prepare the PutCommand with condition expression
-      const command = new PutCommand({
-        TableName: Resource.UsersTable.name,
-        Item: user,
-        ConditionExpression: "attribute_not_exists(email)", // Ensures email is unique
-      });
-
-      const result = await ddbDocClient.send(command);
-
-      return {
-        status: 201,
-        body: user,
-      };
-    },
-    readUser: async ({ params: { id } }) => {
-      const command = new GetCommand({
-        TableName: Resource.UsersTable.name,
-        Key: {
-          userId: id,
-        },
-      });
-      const result = await ddbDocClient.send(command);
-      const item = result.Item as User;
-
-      if (!item) {
-        return {
-          status: 404,
-          body: {
-            message: "User not found",
-          },
-        };
+      if (result.isErr()) {
+        switch (result.error.outcome) {
+          case "EMAIL_ALREADY_EXISTS":
+            return { status: 400, body: { message: "Email already exists" } };
+          case "USER_AGE_RESTRICTION_VIOLATED":
+            return {
+              status: 400,
+              body: { message: "User age restriction violated" },
+            };
+        }
       }
 
-      return {
-        status: 200,
-        body: item as User,
-      };
+      return { status: 201, body: result.value };
+    },
+    readUser: async ({ params: { id } }) => {
+      const result = await repo.getById(id);
+
+      if (result.isErr()) {
+        return { status: 404, body: { message: "User not found" } };
+      }
+
+      return { status: 200, body: result.value };
     },
     updateUser: async ({ params: { id }, body }) => {
-      console.log({ id, body });
+      const result = await updateUser(id, body);
 
-      const updateExpression = Object.keys(body)
-        .map((key) => `${key} = :${key}`)
-        .join(", ");
-      const expressionAttributeValues = Object.entries(body).reduce(
-        (acc, [key, value]) => {
-          acc[`:${key}`] = value;
-          return acc;
-        },
-        {} as { [key: string]: any }
-      );
+      if (result.isErr()) {
+        switch (result.error.outcome) {
+          case "USER_NOT_FOUND":
+            return { status: 404, body: { message: "User not found" } };
+          case "USER_AGE_RESTRICTION_VIOLATED":
+            return {
+              status: 400,
+              body: { message: "User age restriction violated" },
+            };
+        }
+      }
 
-      const command = new UpdateCommand({
-        TableName: Resource.UsersTable.name,
-        Key: {
-          userId: id,
-        },
-        UpdateExpression: `SET ${updateExpression}`,
-        ExpressionAttributeValues: expressionAttributeValues,
-        ConditionExpression: "attribute_exists(userId)", // Ensure the user exists
-        ReturnValues: "ALL_NEW",
-      });
-      const result = await ddbDocClient.send(command);
-      const item = result.Attributes as User;
-
-      return {
-        status: 200 as const,
-        body: item,
-      };
+      return { status: 200, body: result.value };
     },
     deleteUser: async ({ params: { id } }) => {
-      const command = new UpdateCommand({
-        TableName: Resource.UsersTable.name,
-        Key: {
-          userId: id,
-        },
-        UpdateExpression: "set deletedAt = :deletedAt",
-        ExpressionAttributeValues: {
-          ":deletedAt": new Date().toISOString(),
-        },
-      });
-      const result = await ddbDocClient.send(command);
+      const result = await deleteUser(id);
 
-      return {
-        status: 200,
-        body: null,
-      };
+      if (result.isErr()) {
+        switch (result.error.outcome) {
+          case "USER_NOT_FOUND":
+            return { status: 404, body: { message: "User not found" } };
+        }
+      }
+
+      return { status: 200, body: null };
     },
   },
   {
@@ -140,7 +92,7 @@ export const handler = createLambdaHandler(
       },
     ],
     responseHandlers: [
-      async (response, request, { rawEvent, lambdaContext }) => {
+      async (response) => {
         console.log("Response:", response.status, await response.text());
       },
     ],
