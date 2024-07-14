@@ -16,12 +16,12 @@ describe("create-user", () => {
       favoriteColor: "red",
     };
 
-    const id = "1";
+    const userId = "1";
 
-    const result = createUser(id, userCreatePayload);
+    const result = createUser({ userId, data: userCreatePayload });
     expect(result.isErr()).toBe(true);
     assert(result.isErr());
-    expect(result.error.outcome).toBe("USER_AGE_RESTRICTION_VIOLATED");
+    expect(result.error).toBe("USER_AGE_RESTRICTION_VIOLATED");
   });
 
   test("user created", () => {
@@ -32,9 +32,9 @@ describe("create-user", () => {
       favoriteColor: "red",
     };
 
-    const id = "1";
+    const userId = "1";
 
-    const result = createUser(id, userCreatePayload);
+    const result = createUser({ userId, data: userCreatePayload });
     expect(result.isOk()).toBe(true);
   });
 });

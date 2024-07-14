@@ -28,11 +28,11 @@ describe("update-user", () => {
       favoriteColor: "red",
     };
 
-    const result = updateUser(existingUser, updates);
+    const result = updateUser({ existingUser, updates });
 
     expect(result.isErr()).toBe(true);
     assert(result.isErr());
-    expect(result.error.outcome).toBe("USER_AGE_RESTRICTION_VIOLATED");
+    expect(result.error).toBe("USER_AGE_RESTRICTION_VIOLATED");
   });
 
   test("user updated", () => {
@@ -53,7 +53,7 @@ describe("update-user", () => {
       favoriteColor: "red",
     };
 
-    const result = updateUser(existingUser, updates);
+    const result = updateUser({ existingUser, updates });
 
     expect(result.isOk()).toBe(true);
   });

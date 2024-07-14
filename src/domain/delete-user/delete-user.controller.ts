@@ -1,14 +1,10 @@
-import { UserEventEmitter } from "../user.events";
 import { UserRepository } from "../user.repository";
 import { deleteUser } from "./delete-user";
 
 /**
  * A controller's responsibility is to orchestrate the use case and perform side effects
  */
-export const createDeleteUserController = (
-  repo: UserRepository,
-  emit: UserEventEmitter
-) => {
+export const createDeleteUserController = (repo: UserRepository) => {
   return async (userId: string) => {
     const result = await repo.getById(userId);
 
@@ -20,15 +16,11 @@ export const createDeleteUserController = (
 
     const deletedUser = deleteUser(existingUser);
 
-    const saveResult = await repo.save(deletedUser.value);
+    if (deletedUser.isErr()) {
+      return deletedUser;
+    }
 
-    await emit({
-      type: "user.deleted",
-      data: {
-        id: deletedUser.value.id,
-        deletedAt: deletedUser.value.deletedAt,
-      },
-    });
+    const saveResult = await repo.save(deletedUser.value);
 
     return saveResult;
   };

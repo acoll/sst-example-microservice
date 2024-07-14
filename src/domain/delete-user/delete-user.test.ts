@@ -1,3 +1,4 @@
+import assert from "assert";
 import { beforeEach } from "node:test";
 import { describe, expect, test, vi } from "vitest";
 import { User } from "../user";
@@ -24,6 +25,7 @@ describe("delete-user", () => {
     const result = deleteUser(existingUser);
 
     expect(result.isOk()).toBe(true);
-    expect(result.value.deletedAt).toBeTruthy();
+    assert(result.isOk());
+    expect(result.value.user.deletedAt).toBeTruthy();
   });
 });

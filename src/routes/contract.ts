@@ -12,7 +12,7 @@ export const contract = c.router(
   {
     createUser: {
       method: "POST",
-      path: "/",
+      path: "/user",
       body: CreateUser,
       responses: {
         201: User,
@@ -22,7 +22,7 @@ export const contract = c.router(
     },
     readUser: {
       method: "GET",
-      path: `/:id`,
+      path: `/user/:id`,
       responses: {
         200: User,
         404: ErrorMessage,
@@ -30,8 +30,8 @@ export const contract = c.router(
       summary: "Read a user by id",
     },
     updateUser: {
-      method: "PATCH",
-      path: `/:id`,
+      method: "PUT",
+      path: `/user/:id`,
       body: UpdateUser,
       responses: {
         200: User,
@@ -42,8 +42,8 @@ export const contract = c.router(
     },
     deleteUser: {
       method: "DELETE",
-      path: `/:id`,
-      body: z.null(),
+      path: `/user/:id`,
+      body: z.object({}),
       responses: { 200: z.null(), 404: ErrorMessage },
       summary: "Delete a user",
     },

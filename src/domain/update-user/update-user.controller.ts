@@ -5,7 +5,7 @@ import { UpdateUser, updateUser } from "./update-user";
  * A controller's responsibility is to orchestrate the use case and perform side effects
  */
 export const createUpdateUserController = (repo: UserRepository) => {
-  return async (userId: string, payload: UpdateUser) => {
+  return async (userId: string, updates: UpdateUser) => {
     const result = await repo.getById(userId);
 
     if (result.isErr()) {
@@ -14,7 +14,7 @@ export const createUpdateUserController = (repo: UserRepository) => {
 
     const existingUser = result.value;
 
-    const updateResult = updateUser(existingUser, payload);
+    const updateResult = updateUser({ existingUser, updates });
 
     if (updateResult.isErr()) {
       return updateResult;

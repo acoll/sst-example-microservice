@@ -1,6 +1,7 @@
-import { Result, err, ok } from "neverthrow";
+import { err, ok } from "neverthrow";
 import { z } from "zod";
 import { User, validateUserMeetsAgeRestriction } from "../user";
+import { UserOperation } from "../user-operation";
 
 export const UpdateUser = User.pick({
   name: true,
@@ -13,10 +14,15 @@ type UpdateUserError = {
   outcome: "USER_AGE_RESTRICTION_VIOLATED";
 };
 
-export const updateUser = (
-  existingUser: User,
-  updates: UpdateUser
-): Result<User, UpdateUserError> => {
+type UserUpdateParams = {
+  existingUser: User;
+  updates: UpdateUser;
+};
+
+export const updateUser: UserOperation<
+  UserUpdateParams,
+  "USER_AGE_RESTRICTION_VIOLATED"
+> = ({ existingUser, updates }) => {
   const today = new Date();
 
   const updatedUser: User = {
@@ -27,11 +33,8 @@ export const updateUser = (
 
   // Arbitrary but I wanted an example of handling domain logic invariants
   if (!validateUserMeetsAgeRestriction(updatedUser, today)) {
-    return err({
-      outcome: "USER_AGE_RESTRICTION_VIOLATED",
-      error: "User must be at least 18 years old",
-    });
+    return err("USER_AGE_RESTRICTION_VIOLATED");
   }
 
-  return ok(updatedUser);
+  return ok({ user: updatedUser, events: [] });
 };

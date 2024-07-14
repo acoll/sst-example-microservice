@@ -1,19 +1,25 @@
+import { generateOpenApi } from "@ts-rest/open-api";
 import { createLambdaHandler } from "@ts-rest/serverless/aws";
 import { Resource } from "sst";
 import { createDdbUserRepository } from "~/database/ddb-user-repository";
 import { createCreateUserController } from "~/domain/create-user/create-user.controller";
 import { createDeleteUserController } from "~/domain/delete-user/delete-user.controller";
 import { createUpdateUserController } from "~/domain/update-user/update-user.controller";
-import { UserEventEmitter } from "~/domain/user.events";
 import { contract } from "./contract";
 
 // Create the controller with implementations of repo and other dependencies.
-const repo = createDdbUserRepository(Resource.Users.name);
-const emitEvent: UserEventEmitter = async (event) => console.log("Emit", event);
+const repo = createDdbUserRepository(Resource.Users.name, Resource.Events.name);
 
-const createUser = createCreateUserController(repo, emitEvent);
+const createUser = createCreateUserController(repo);
 const updateUser = createUpdateUserController(repo);
-const deleteUser = createDeleteUserController(repo, emitEvent);
+const deleteUser = createDeleteUserController(repo);
+
+const openApiDocument = generateOpenApi(contract, {
+  info: {
+    title: "Posts API",
+    version: "1.0.0",
+  },
+});
 
 /**
  * The route handler's responsibilities are:
@@ -31,7 +37,7 @@ export const handler = createLambdaHandler(
       const result = await createUser(body);
 
       if (result.isErr()) {
-        switch (result.error.outcome) {
+        switch (result.error) {
           case "EMAIL_ALREADY_EXISTS":
             return { status: 400, body: { message: "Email already exists" } };
           case "USER_AGE_RESTRICTION_VIOLATED":
@@ -57,14 +63,14 @@ export const handler = createLambdaHandler(
       const result = await updateUser(id, body);
 
       if (result.isErr()) {
-        switch (result.error.outcome) {
-          case "USER_NOT_FOUND":
-            return { status: 404, body: { message: "User not found" } };
+        switch (result.error) {
           case "USER_AGE_RESTRICTION_VIOLATED":
             return {
               status: 400,
               body: { message: "User age restriction violated" },
             };
+          case "USER_NOT_FOUND":
+            return { status: 404, body: { message: "User not found" } };
         }
       }
 
@@ -74,7 +80,7 @@ export const handler = createLambdaHandler(
       const result = await deleteUser(id);
 
       if (result.isErr()) {
-        switch (result.error.outcome) {
+        switch (result.error) {
           case "USER_NOT_FOUND":
             return { status: 404, body: { message: "User not found" } };
         }
