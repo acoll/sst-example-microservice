@@ -11,20 +11,20 @@ This project is an example microservice built using the SST framework. It demons
 
 ## Project Structure
 
-- `src/routes`: Contains the API route handlers.
-- `src/domain`: Contains the domain logic and use cases.
+- `src/routes`: API route handlers.
+- `src/domain`: Domain logic and use cases.
 - `src/integration-events`: Handles integration events and their publishing.
-- `src/database`: Contains the repository implementation for interacting with DynamoDB.
+- `src/database`: Repository implementation of `UserRepository` for interacting with DynamoDB.
 - `src/__some_other_service`: A fake and very primitive/stubbed example of consuming integration events. In a real project this would live in its own package or repo.
 
 ## Routes
 
-- `src/routes/contract.ts`: Handles the contract routes.
+- `src/routes/index.ts`: Handles the contract routes.
   - `GET /user/:id`: Retrieves a user by ID.
   - `POST /user`: Creates a new user.
   - `PUT /user/:id`: Updates a user by ID.
   - `DELETE /user/:id`: Deletes a user by ID.
-- `src/routes/swagger.ts`: Handles the Swagger routes.
+- `src/routes/swagger.ts`: Renders the swagger ui.
 
 ## Domain
 
