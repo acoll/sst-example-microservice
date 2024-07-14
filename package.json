@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest",
-    "dev": "sst dev"
+    "dev": "sst dev",
+    "deploy": "sst deploy"
   },
   "keywords": [],
   "author": "",

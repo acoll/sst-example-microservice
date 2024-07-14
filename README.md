@@ -24,7 +24,7 @@ To run the project in development mode, use the following command:
 npm run dev
 ```
 
-This will start the SST development environment, allowing you to test and develop the application locally. You can access the Swagger page at `/swagger` to explore the API endpoints.
+This will start the SST development environment, allowing you to test and develop the application locally. You can access the Swagger page at `/swagger` to explore the API endpoints. Learn more about the SST Console [here](https://ion.sst.dev/docs/console/).
 
 ## Deploying to AWS
 
