@@ -1,4 +1,3 @@
-import { generateOpenApi } from "@ts-rest/open-api";
 import { createLambdaHandler } from "@ts-rest/serverless/aws";
 import { Resource } from "sst";
 import { createDdbUserRepository } from "~/database/ddb-user-repository";
@@ -13,13 +12,6 @@ const repo = createDdbUserRepository(Resource.Users.name, Resource.Events.name);
 const createUser = createCreateUserController(repo);
 const updateUser = createUpdateUserController(repo);
 const deleteUser = createDeleteUserController(repo);
-
-const openApiDocument = generateOpenApi(contract, {
-  info: {
-    title: "Posts API",
-    version: "1.0.0",
-  },
-});
 
 /**
  * The route handler's responsibilities are:
