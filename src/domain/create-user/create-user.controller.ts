@@ -27,6 +27,7 @@ export const createCreateUserController = (repo: UserRepository) => {
       return createResult;
     }
 
+    // The email uniqueness check could race condition. Discuss ways to properly enforce email uniqueness.
     const saveResult = await repo.save(createResult.value);
 
     if (saveResult.isErr()) {
